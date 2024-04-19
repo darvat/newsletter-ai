@@ -17,14 +17,18 @@ st.write(
     """
 )
 
+
 if "running" not in st.session_state:
     st.session_state.running = False
 
 if "generated_news" not in st.session_state:
     st.session_state.generated_news = []
 
+if not st.session_state.running and not st.session_state.generated_news:
+    st.image("newsletter.png", width=800)
+
 system_message = st.sidebar.text_area(
-    "🤖 System behaviour. Tell the system how it should act.",
+    "🤖 AI behaviour: Tell the system how it should act and behave.",
     dedent(
         """
         You are a renowned AI expert and you write a weekly AI newsletter. 
@@ -69,7 +73,7 @@ with col1:
         disabled=st.session_state.running,
         on_click=lambda: setattr(st.session_state, "running", True),
     ):
-        st.session_state.generated_news = []  # Reset when starting new generation
+        st.session_state.generated_news = []
 
 with col2:
     st.button(
@@ -78,7 +82,6 @@ with col2:
         use_container_width=True,
         on_click=lambda: setattr(st.session_state, "running", False),
     )
-# st.session_state.running = False
 
 with st.container():
     if st.session_state.running:
@@ -86,7 +89,6 @@ with st.container():
             result_generator = gen_main(system_message, where, what, after)
             for news in result_generator:
                 if not st.session_state.running:
-                    st.toast("Generation stopped by the user.")
                     break
                 st.session_state.generated_news.append(news)
                 with st.expander(news["title"]):
