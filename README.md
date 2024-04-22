@@ -2,6 +2,11 @@
 
 <img src="newsletter.png" alt="newsletter" width="400"/>
 
+## Watch on youtube how it generates stuff
+
+[<img src="https://img.youtube.com/vi/3SGpf-VTMy4/hqdefault.jpg" width="600" height="300"
+/>](https://www.youtube.com/embed/3SGpf-VTMy4)
+
 
 ## What you'll need
 
