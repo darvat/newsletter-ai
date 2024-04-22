@@ -1,3 +1,4 @@
+from time import sleep
 import streamlit as st
 from datetime import datetime, timedelta
 from textwrap import dedent
@@ -10,6 +11,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+
 st.title("Newsletter Generator App")
 st.write(
     """
@@ -17,15 +19,18 @@ st.write(
     """
 )
 
-
 if "running" not in st.session_state:
     st.session_state.running = False
 
 if "generated_news" not in st.session_state:
     st.session_state.generated_news = []
 
+if "just_completed" not in st.session_state:
+    st.session_state.just_completed = False
+
 if not st.session_state.running and not st.session_state.generated_news:
     st.image("newsletter.png", width=800)
+
 
 system_message = st.sidebar.text_area(
     "🤖 AI behaviour: Tell the system how it should act and behave.",
@@ -66,14 +71,25 @@ after = after.strftime("%Y-%m-%d")
 
 col1, col2 = st.sidebar.columns(2)
 
+placeholder = st.empty()
+placeholder_container = placeholder.container()
+
+
+def genbuttonclick():
+    st.session_state.running = True
+    st.session_state.generated_news = []
+    st.session_state.just_completed = False
+    placeholder.empty()
+    sleep(0.1)
+
+
 with col1:
-    if st.button(
+    st.button(
         "Generate ✨",
         use_container_width=True,
         disabled=st.session_state.running,
-        on_click=lambda: setattr(st.session_state, "running", True),
-    ):
-        st.session_state.generated_news = []
+        on_click=genbuttonclick,
+    )
 
 with col2:
     st.button(
@@ -83,20 +99,29 @@ with col2:
         on_click=lambda: setattr(st.session_state, "running", False),
     )
 
-with st.container():
+
+with placeholder_container:
     if st.session_state.running:
         with st.spinner("Generating newsletter... Please wait."):
             result_generator = gen_main(system_message, where, what, after)
             for news in result_generator:
+                st.session_state.generated_news.append(news)
                 if not st.session_state.running:
                     break
-                st.session_state.generated_news.append(news)
                 with st.expander(news["title"]):
                     st.markdown(news["data"])
-    else:
+            st.session_state.running = False
+            st.session_state.just_completed = True
+    elif len(st.session_state.generated_news) > 0:
         for news in st.session_state.generated_news:
             with st.expander(news["title"]):
                 st.markdown(news["data"])
 
-    if not st.session_state.running and st.session_state.generated_news:
-        st.balloons()
+
+if (
+    not st.session_state.running
+    and st.session_state.generated_news
+    and st.session_state.just_completed
+):
+    st.session_state.just_completed = False  # Reset the flag
+    st.rerun()
